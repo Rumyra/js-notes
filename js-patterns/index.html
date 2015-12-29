@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!--char set (lang above)-->
+  <meta charset="utf-8">
+
+  <!--device/browser shizzle-->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!--meta content-->
+  <link rel="shortcut icon" href="favicon.ico" />
+  <meta name="author" content="Ruth John (@rumyra)">
+  <meta name="dcterms.rightsHolder" content="Built Ruth John, United Kingdom, 2016">
+  <title>O'Reilly JavaScript Patterns</title>
+
+  <style>
+
+  </style>
+</head>
+
+<body>
+<p>Examples of design patterns: Singleton, factory, decorator, observer.</p>
+
+<p>NOT objects: number, string, boolean, NULL & undefined</p>
+
+<p>Activation object or global object - a variable becomes a <i>property</i> of these and itself has properties - called <i>attributes</i>. (Not exposed in ECMA script 3, but are in 5).</p>
+
+<p>Object is just named properties. Key <-> value pairs. They can be functions -> <i>methods</i>. You can modify objects at any time, update it's <i>members</i></p>
+
+<p>Native object -> described in ECMA script standard (<i>built-in</i> array, date <i>user defined</i> var = {};) & Host object -> defined by environment, e.g. browser object. If ur code runs in non-browser environment it probs doesn't use host objects.</p>
+
+<h4>There are no classes in javascript - 'prefer object composition to class inheritance'</h4>
+
+<h3>Prototypes</h3>
+
+<p>Every function you create gets a prototype property that points to a blank object. All objects inherit a constructor property from their prototype.</p>
+
+<p>In ECMAScript 5 "use strict" will enable strict mode. 'with' will cause an error. Use JSLint!</p>
+
+<p>Global & local vars - use local! Use var esp within functions, and don't do var a = b = 0, as b will end up global (right to left).</p>
+
+<p>Properties can be deleted with the <i>delete</i> operator, but variables can not. 'Variables' declared without var are just properties - and thus can be cleared out.</p>
+
+<p>window property is the global object</p>
+
+<h4>Use the single var pattern! - Declare all vars at top of function</h4>
+
+<p>Calling <i>hasOwnProperty</i> filters out prototype properties, also adding prototype properties means all objects have access, regardless if they have already been declared.</p>
+
+<p>Avoid implied typecasting (using == instead of ===) and using eval().</p>
+
+<p>Use parseInt, with second radix value, instead of Number(). It always return a number and NaN.</p>
+
+<p>Capitalise constructors, use camel case.</p>
+
+<p>For writing API docs, look at JSDoc Toolkit and YUIDoc.</p>
+
+<p>Constructors by default will return <i>this</i>, unless otherwise stated. But only objects, not strings of booleans. It's a good idea to get constructors to return 'that' instead, incase you forget the <i>new</i> keyword. That was you won't be returning anything to the global object (which you would if it was returning this). You can also test for an instance of the constructor at the beginning of the constructor, and if it's not there create one.</p>
+
+<p>Instead of using <i>Array()</i> You should just use objects.</p>
+
+<p>Use JSON.parse NOT eval(). You can not put functions in JSON.</p>
+
+<h4>5 primitive value types: Number, string, boolean, null & undefined. If you use new you get typeof object, if not you get number, string etc... You should use literal though as although it'll use type of number, string etc... it'll convert to object and you will get methods.</h4>
+
+<h3>Functions</h3>
+
+<p>An un-named function is an anonymous function.</p>
+
+<p>Asynchronously == 'out of order'</p>
+
+<script type="text/javascript">
+
+// Object leteral
+
+var objectLiteral = {
+  // an array literal
+    images: ["smile.gif", "grim.gif", "frown.gif", "bomb.gif"],
+    pos: { // nested object literal
+        x: 40,
+        y: 300
+    },
+    onSwap: function() { // function
+        // code here
+    }
+};
+
+var o = {};
+o.constructor === Object; // true
+
+var a = [];
+a.constructor === Array; // true
+
+var n = new Number(3);
+n.constructor === Number; // true
+
+// collections
+document.forms;
+document.forms[0].elements;
+document.images;
+document.links;
+document.getElementsByName;
+
+for (var i = 0, max = myarray.length; i < max; i++) {
+    // do something with myarray[i]
+}
+
+for (var i in man) {
+    if (man.hasOwnProperty(i)) { // filter
+        console.log(i, ":", man[i]);
+    }
+}
+/*
+result in the console
+hands : 2
+legs : 2
+heads : 1
+*/
+
+var inspect_me = 0,
+    result = '';
+
+switch (inspect_me) {
+case 0:
+    result = "zero";
+    break;
+case 1:
+    result = "one";
+    break;
+default:
+    result = "unknown";
+}
+
+// function declaration - no semicolon needed
+function name() {}
+// immediate function
+(function () {
+  //stuff here
+}());
+// function expression (anonymous)
+var something = function() {};
+// constructor
+var another = new Another();
+
+function foo() {} // declaration
+var bar = function () {}; // expression
+var baz = function baz() {}; // named expression
+
+foo.name; // "foo"
+bar.name; // ""
+baz.name; // "baz"
+
+
+
+// object literal pattern - this one is good
+var dog = {
+  name: "benji",
+  getName: function () {
+    return this.name;
+  }
+};
+// so you can now do dog.getNme and it will return benji
+
+// constructor function
+var Person = function(name) {
+  this.name = name;
+  this.say = function() {
+    return "I am "+this.name;
+  };
+};
+var character = new Person('simon');
+// character.say should return I am simon - this isn't efficient if you always want to call it, you may as well add it to the prototype
+Person.prototype.say =  function() {
+  return "I am "+this.name;
+};
+
+// testing for instance of constructor, and invoking if not there
+function Waffle() {
+  if (!(this instanceof Waffle)) {
+    return new Waffle();
+  }
+  this.tastes = "yummy";
+}
+
+// error handling
+try {
+    // something bad happened, throw an error
+    throw {
+        name: "MyErrorType", // custom error type
+        message: "oops",
+        extra: "This was rather embarrassing",
+        remedy: genericErrorHandler // who should handle it
+    };
+} catch (e) {
+    // inform the user
+    alert(e.message); // "oops"
+
+    // gracefully handle the error
+    e.remedy(); // calls genericErrorHandler()
+}
+
+var usingCallback = function(callback) {
+  // do some stuff here
+  // notice it only needs brackets when it's called
+  if (typeof callback === "function") {
+    callback();
+  }
+};
+var callbackFunction = function() {
+  // do stuff
+};
+usingCallback(callbackFunction);
+
+// OR YOU COULD DO
+
+usingCallback(function() {});
+
+// HTTP Request
+var xhr =  new XMLHttpRequest();
+// method, url, asyncronous?
+xhr.open("GET", "page.html", true);
+xhr.send();
+
+// with javascript
+
+
+
+
+
+
+function loadXMLDoc() {
+    var xmlhttp;
+
+    if (window.XMLHttpRequest) {
+        // code for IE7+, Firefox, Chrome, Opera, Safari
+        xmlhttp = new XMLHttpRequest();
+    } else {
+        // code for IE6, IE5
+        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == XMLHttpRequest.DONE ) {
+           if(xmlhttp.status == 200){
+               document.getElementById("myDiv").innerHTML = xmlhttp.responseText;
+           }
+           else if(xmlhttp.status == 400) {
+              alert('There was an error 400')
+           }
+           else {
+               alert('something else other than 200 was returned')
+           }
+        }
+    }
+
+    xmlhttp.open("GET", "ajax_info.txt", true);
+    xmlhttp.send();
+}
+// with jquery
+$.ajax({
+    url: "test.html",
+    context: document.body,
+    success: function(){
+      $(this).addClass("done");
+    }
+});
+
+
+
+
+
+</script>
+
+</body>
+</html>

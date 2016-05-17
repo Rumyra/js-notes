@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!--char set (lang above)-->
+  <meta charset="utf-8">
+
+  <!--device/browser shizzle-->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!--meta content-->
+  <link rel="shortcut icon" href="../favicon.ico" />
+  <meta name="author" content="Ruth John (@rumyra)">
+  <meta name="dcterms.rightsHolder" content="Built Ruth John, United Kingdom, 2016">
+  <title>Intro to react</title>
+  <script type="text/javascript" src="app.jsx"></script>
+  
+  <!--<script type="text/javascript" src="react-dom.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>-->
+
+  <style>
+
+  </style>
+</head>
+
+<body>
+  <h2>Intro to react.js</h2>
+
+  <p>It's not a framework - it does the UI very well - it's the V in MVC.</p>
+
+  <h3>Component Driven</h3>
+
+  <p>It's component driven, so it's all about creating HTML components that take state and properties and produce components. State can be changed, properties can not.</p>
+
+  <p>Components are optionally written in JSX, which means you can use HTML, rather than <code>createElement</code> The DOM representation in react is referred to as the virtual DOM, which is faster than the browsers DOM.</p>
+
+  <p>React computes the difference between whats in the DOM and what's been updated and just changes the updates - not the whole element</p>
+
+  <hr />
+
+  <h3>Instructions</h3>
+
+  <div id="AKAI-MPK-mini">
+    <section id="pads"></section>
+    <section id="dials"></section>
+    <section id="keyboard"></section>
+  </div>
+
+  <ol>
+    <li>Include react.js and react-dom.js (CDN, node package or bower)</li>
+    <li>Use external js file, rename extension to .jsx so react can parse as such</li>
+    <li>Create DOM element for react to hook into</li>
+    <li>To create component in react - use createClass method. Takes an object with properties - only required property is <code>render</code></li>
+    <li>Use React.render and pass in component name and root dom element.</li>
+    <li></li>
+    <li></li>
+  </ol>
+
+<h2>I gave up on this - I was consistantly getting syntax errors regardless of what I tried - I think this course was already outdated, even within 6 months!</h2>
+
+<script type="text/javascript" src="react.js"></script>
+
+
+</body>
+</html>

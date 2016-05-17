@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!--char set (lang above)-->
+  <meta charset="utf-8">
+
+  <!--device/browser shizzle-->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!--meta content-->
+  <link rel="shortcut icon" href="../favicon.ico" />
+  <meta name="author" content="Ruth John (@rumyra)">
+  <meta name="dcterms.rightsHolder" content="Built Ruth John, United Kingdom, 2016">
+  <title>Pluralsite JS Design Patterns course</title>
+
+  <style>
+
+  </style>
+</head>
+
+<body>
+
+<h2>Pluralsite JS Design Patterns course</h2>
+
+<hr />
+
+<h3>Common Object Patterns</h3>
+
+<h4>Function arguments</h4>
+
+<p>Simple function with arguments, these don't work like other languages, you don't need to specify a type.</p>
+
+<pre><code>
+function myFunc(a,b,c) {
+  return a+b+c;
+}
+// Nan - c is undefined, because it wasn't defined
+concole.log(a,b)
+// this is cool
+concole.log(a,b,c)
+// the forth here is just ignored
+concole.log(a,b,c,d)
+</code></pre>
+
+<h4>Arguments object</h4>
+
+<p>Exists within every function, it's sort of like an array. You can access through index a = arguments[0], and you have .length. But you can't sort of filter.</p>
+
+<p>A better way for the above function would be:</p>
+
+<pre><code>
+function myFunc() {
+  var x = 0;
+  for (i=0; i<arguments.length; i++) {
+    x = x+arguments[i];
+  }
+  return x;
+}
+</code></pre>
+
+<h4>Chaining methods (Chained API)</h4>
+
+<p>This is what it says on the tin - the ability to chain methods together so we can call it all on one instance - should work better, look better, 'feel' better :)</p>
+
+<p>Javascript (like Ruby) has a specific return value for every function - if you don't have one specified the function will return <code>undefined</code>. So we need to return shit - in this case <code>this</code>. <code>This</code> represents the current state the method was revoked from.</p>
+
+<p>To make sure nothing happens unexpectedly to <code>this</code> we just invoke it to <code>that</code> and capture it through closures.</p>
+
+<pre><code>
+var Calc = function(start) {
+  var that = this;
+  this.add = function(x) {
+    start = start+x;
+    return that;
+  }
+  this.subtract = function(x) {
+    start = start-x;
+    return that;
+  }
+  this.multiply = function(x) {
+    start = start*x;
+    return that;
+  }
+  this.equals = function(callback) {
+    callback(start);
+    return that;
+  }
+}
+
+new Calc(0)
+  .add(1)
+  .add(2)
+  .multiply(3)
+  .equals(function (result) {
+    console.log(result)
+  })
+</code></pre>
+
+
+<h4>Observable Properties</h4>
+
+<p>How do we update properties? We create methods instead just properties - this way we can capture and react to them.</p>
+
+<pre><code>
+var Book = function(name,price) {
+  var priceChanging = [],
+    priceChanged = [];
+  this.name = function(val) {
+    return name;
+  };
+  this.price = function(val) {
+    if (val !== undefined && val !== price) {
+      for (var i = 0; priceChanging.length; i++) {
+        if(!priceChanging[i](this,val)) {
+          return price;
+        }
+      }
+      price = val;
+      for (var i = 0; priceChanged.length; i++) {
+        priceChanged[i](this);
+      }
+    }
+    return price;
+  };
+  this.onPriceChanging = function(callback) {
+    priceChanging.push(callback);
+  }
+  this.onPriceChanged = function(callback) {
+    priceChanged.push(callback);
+  }
+}
+
+var book = new Book('this is a name', 2.99);
+book.onPriceChanging(function(b, price) {
+  if (price > 100) {
+    console.log('error price to high');
+    return false;
+  }
+  return true;
+});
+book.onPriceChanged(function(b) {
+  console.log('price has changed');
+})
+</code></pre>
+
+<p>So this is super long winded right - enter getters and setters in ES5 - much easier :D</p>
+
+<pre><code>
+// also getProperties
+Object.defineProperty(cat, 'fullname', {
+  get: function() {
+    return this.name.first+' '+this.name.last
+  },
+  set: function(value) {
+    var nameParts = value.split(' ')
+    this.name.first = nameParts[0]
+    this.name.last = nameParts[1]
+  }
+})
+
+</code></pre>
+
+<hr />
+
+<h3>Timer functions <code>setTimeout</code> <code>setInterval</code>  </h3>
+
+<p>Both take a function to call and a time <code>setTimeout</code> will call the function once and <code>setInterval</code> will call the function continously. 4ms is usually capped by browser engines and the function can not be called again until it has stopped running.</p>
+
+<h4>Asynchronous Execution Patterns</h4>
+
+<p>Browsers are typically single threaded. Can only do one thing at the same time (bar web workers). Long running JS can make it appear the browser has become unresponsive.</p>
+<p>Split up long running code excecution to free up the browser.</p>
+
+<h4>Recursive timeout pattern</h4>
+
+<p>Running a function at set periods. But because JS in async, it may not wait until it's finished before starting up again. Say its an AJAX request - this may take longer than the allowed interval. You may have two AJAX requests happening at the same time.</p>
+
+<p>Instead of using <code>setInterval</code> use <code>setTimeout</code> and call it twice - once within each other.</p>
+
+<pre><code>
+// recursive setTimeout pattern
+setTimeout(function getFoo() {
+  $.get('/foo', function (result) {
+    // do something
+    setTimeout(getFoo, 1000)
+  });
+}, 1000);
+</code></pre>
+
+<hr />
+
+<h3>Asynchronous Module Definitions (AMDs)</h3>
+
+<p>Javascript has no way of explicitly state dependancies on external references. How do you specify code blacks that rely on other code blocks... are they there already - if not load them. How do you prevent scope leakage - global vars are *very* easy to define. JS is blocking, only one file can be loaded at one time. Node.js doesn't have the same restrictions as a browser - how does it deal with file loading?</p>
+
+<p>commonJS is an incentive to get a bunch of js standards and patterns together for both server side and browser code</p>
+
+<h4>Node modules</h4>
+
+<p>If we take our calc object from before, separate that into a file, we can 'require' it within our 'app.js' or whatever file uses it.</p>
+
+<pre><code>
+var Calc = require('./calc.js');
+</code></pre>
+
+<p>But we must remember to export it in our calc.js file. Node provides a closure scope.</p>
+
+<pre><code>
+module.exports = {
+  add: function (x,y) {
+    return new Calc(x).add(y || 0);
+  },
+  multiply: function (x,y) {
+    return new Calc(x).multiply(y || 0);
+  }
+}
+</code></pre>
+
+<p>By adding these functions into the exports scope, you don't have to create a new instance of calc with <code>new Calc(0)</code> you can simply do:</p>
+
+<pre><code>
+Calc.add(1, 2).multiply(2);
+</code></pre>
+
+<h4>require.js</h4>
+
+<p>This isn't the same in a browser - require.js comes in. Can create modules for both node and the browser. Defines file layout structure and also supports css and html.</p>
+
+<p>Download and include require.js Include a data attrib which including the script in the header - to the first javascript file to look at (probably app or main).</p>
+
+<p>Use <code>require([name], function() {operations here})</code> for your dependencies in files.</p>
+
+<hr />
+
+<h3>Pub/Sub design pattern</h3>
+
+<h4>Publish subscribe - basically separating events and the functions that could run on those events. So any events could have any functions run on them.</h4>
+
+
+
+
+
+<pre><code></code></pre>
+<pre><code></code></pre>
+<pre><code></code></pre>
+<pre><code></code></pre>
+
+
+<script type="text/javascript">
+
+function myFunc(a,b,c) {
+  return a+b+c;
+}
+// Nan - c is undefined, because it wasn't defined
+concole.log(a,b)
+// this is cool
+concole.log(a,b,c)
+// the forth here is just ignored
+concole.log(a,b,c,d)
+
+//This is way better
+function myFunc() {
+  var x = 0;
+  for (i=0; i<arguments.length; i++) {
+    x = x+arguments[i];
+  }
+  return x;
+}
+
+// CHAINING
+var Calc = function(start) {
+  var that = this;
+  this.add = function(x) {
+    start = start+x;
+    return that;
+  }
+  this.subtract = function(x) {
+    start = start-x;
+    return that;
+  }
+  this.multiply = function(x) {
+    start = start*x;
+    return that;
+  }
+  this.equals = function(callback) {
+    callback(start);
+    return that;
+  }
+}
+
+new Calc(0)
+  .add(1)
+  .add(2)
+  .multiply(3)
+  .equals(function (result) {
+    console.log(result)
+  })
+
+// OBSERVABLE PROPERTIES
+var Book = function(name,price) {
+  var priceChanging = [],
+    priceChanged = [];
+  this.name = function(val) {
+    return name;
+  };
+  this.price = function(val) {
+    if (val !== undefined && val !== price) {
+      for (var i = 0; priceChanging.length; i++) {
+        if(!priceChanging[i](this,val)) {
+          return price;
+        }
+      }
+      price = val;
+      for (var i = 0; priceChanged.length; i++) {
+        priceChanged[i](this);
+      }
+    }
+    return price;
+  };
+  this.onPriceChanging = function(callback) {
+    priceChanging.push(callback);
+  }
+  this.onPriceChanged = function(callback) {
+    priceChanged.push(callback);
+  }
+}
+
+var book = new Book('this is a name', 2.99);
+book.onPriceChanging(function(b, price) {
+  if (price > 100) {
+    console.log('error price to high');
+    return false;
+  }
+  return true;
+});
+book.onPriceChanged(function(b) {
+  console.log('price has changed');
+})
+
+// TIMER
+// asynchronous execution pattern
+var buffer = function(items, interFn, callback) {
+  var i=0, len = items.length;
+  setTimeout(function() {
+    var result;
+
+    for (var start = +new Date; i < len && result !== false && ((+new Date) - start < 50); i++ ) {
+      result = interFn.call(items[i], items[i], i);
+    }
+
+    if (i < len && result !== false) {
+      // this is bad
+      setTimeout(arguments.callee, 20);
+    } else {
+      callback(items);
+    }
+  }, 20);
+}
+var html = '', data = [];
+buffer(data, function(item) {
+    html += '<li>'+item+'</li>';
+  }, function() {
+    // add html to dom
+  }
+)
+// recursive setTimeout pattern
+setTimeout(function getFoo() {
+  $.get('/foo', function (result) {
+    // do something
+    setTimeout(getFoo, 1000)
+  });
+}, 1000);
+
+
+
+
+</script>
+
+</body>
+</html>

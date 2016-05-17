@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!--char set (lang above)-->
+  <meta charset="utf-8">
+
+  <!--device/browser shizzle-->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!--meta content-->
+  <link rel="shortcut icon" href="../favicon.ico" />
+  <meta name="author" content="Ruth John (@rumyra)">
+  <meta name="dcterms.rightsHolder" content="Built Ruth John, United Kingdom, 2016">
+  <title>Pluralsight JS Objects & Prototypes</title>
+  <script type="text/javascript" src="display.js"></script>
+  <style>
+
+  </style>
+</head>
+
+<body>
+
+<h2>Pluralsight JS Objects and Prototypes course</h2>
+
+<hr />
+
+<h3>Creating JavaScript Objects</h3>
+
+<p>Use strict mode: <code>'use strict';</code> at top of code - this means JS throws more errors (like when otherwise it would silently fail) and also disallows the use of deprecated functionality.</p>
+
+<h4>Object Literal</h4>
+
+<p>Simplest and easiest, probably most common</p>
+<pre><code>
+var cat = {name: 'fluffy', colour: 'white'};
+</code></pre>
+
+<p>You can just add properties:</p>
+<pre><code>
+cat.age = 3
+</code></pre>
+
+<p>Properties can be functions:</p>
+<pre><code>
+cat.speak = function() {
+  display("Meeooow");
+}
+</code></pre>
+
+<p>You could have course just put the function inside the original declaration of the object literal:</p>
+
+<pre><code>
+var cat = {
+  name: 'fluffy',
+  colour: 'white',
+  speak: function() {
+    display("Meeooow");
+  }
+};
+</code></pre>
+
+<h4>Constructor Function</h4>
+
+<h5>What if you want more than one cat?!</h5>
+
+<p>It's just a function - however note the <code>this</code> keyword and <code>new</code> keyword</p>
+
+<pre><code>
+function Cat(name, colour) {
+  this.name = name;
+  this.color = colour;
+}
+var cat = new Cat('fluffy', 'white');
+</code></pre>
+
+<p><code>this</code> refers back to the 'current' object, so in this case cat, but in the browser it's the window object. The <code>new</code> keyword is important because a new empty object is declared for 'this' to be assigned to, then the Cat function is assigned to it.</p>
+
+<h5>This is syntactic sugar for <code>Object.create</code></h5>
+
+<p>We could use the <code>Object.create</code> syntax and it would be the same - it's just more to type...</p>
+
+<pre><code>
+var cat = Object.create(Object.prototype,
+  {
+    name: {
+      value: 'fluffy',
+      enumerable: true,
+      writable: true,
+      configurable: true
+    },
+    color: {
+      value: 'white',
+      enumerable: true,
+      writable: true,
+      configurable: true
+    }
+  }
+
+);
+</code></pre>
+
+<p>Note we're passing in the prototype as the object to create and setting the extra properties - this all happens for us in the first two examples.</p>
+
+<h4>ES6 Classes</h4>
+
+<p>New syntax to create classes, a bit more like a statically typed language.</p>
+
+<pre><code>
+class Cat {
+  // a bit like our constructor function
+  constructor(name,color) {
+    this.name = name
+    this.color = color
+  }
+
+  // and we can add methods (functions)
+  speak() {
+    display('meeoow')
+  }
+}
+var cat = new Cat('fluffy', 'white')
+cat.speak
+</code></pre>
+
+<hr />
+
+<h3>Object Properties</h3>
+
+<h4>Using Bracket Notation</h4>
+
+<p>This can be useful, if the property is <b>not</b> a valid identifier. Like JSON data for example.</p>
+
+<pre><code>
+cat.colour
+// or
+cat['colour']
+</code></pre>
+
+<h4>Property Descriptor & Property Attributes</h4>
+
+<p>Every property has a property descriptor that can be used to see it's attributes.</p>
+
+<pre><code>
+Object.getOwnPropertyDescriptor(cat, 'name');
+// will print out
+Object {
+  value: Fluffy
+  writable: true
+  enumerable: true
+  configurable: true
+}
+
+</code></pre>
+
+<p>So at this point it becomes obvious we can do: (NB only in strict mode will this throw an error)</p>
+
+<pre><code>
+Object.defineProperty(cat, 'name', {writable: false});
+</code></pre>
+
+<p>Worth bearing in mind if the property is an object, and the property is set to read only (writable: false), you can <b>still</b> change the object. You can however use the <code>freeze</code> method:</p>
+
+<pre><code>
+Object.freeze(cat.name)
+</code></pre>
+
+<p>The enumerable attribute removes that specific objects value from being seen when you enumerate it (loop over it), see it in the objects keys or serialise it. If we loop over out cat object's values we can see them all, unless we set enumerable to false on any one of them.</p>
+
+<pre><code>
+Object.defineProperty(cat, 'name', {enumerable: false});
+
+// looping over properties and values of the cat object
+for (var propertyName in cat) {
+  display(propertyName + ':' + cat[propertyName])
+}
+
+display(Object.keys(cat))
+</code></pre>
+
+<p>You can still look at the property with bracket notation.</p>
+
+<p>The configurable attribute locks the objects value down. Setting to false means you can't change the enumerable value, you can't change the configurable value back <b>but</b> you can change the writable property. You also can't delete that objects value.</p>
+
+<h4>Getters & Setters</h4>
+
+<p>These are cool things we can do on properties to add functionality to an object:</p>
+
+<pre><code>
+var cat = {
+  name: {first: 'fluffy', last: 'kins'},
+  colour: 'white'
+}
+// also getProperties
+Object.defineProperty(cat, 'fullname', {
+  get: function() {
+    return this.name.first+' '+this.name.last
+  },
+  set: function(value) {
+    var nameParts = value.split(' ')
+    this.name.first = nameParts[0]
+    this.name.last = nameParts[1]
+  }
+})
+
+display(cat.fullName);
+
+cat.fullName = "Muffin Top"
+display(cat.name.first)
+</code></pre>
+
+<hr />
+
+<h3>PROTOTYPES!!!</h3>
+
+<h5>Explanation</h5>
+
+<p>Let's say you create an array and want to get the last argument in that array - you'd do something like this:</p>
+
+<pre><code>
+var arr = ['red', 'blue', 'green']
+var last = arr[arr.length-1]
+</code></pre>
+
+
+
+
+
+
+
+<pre><code></code></pre>
+<pre><code></code></pre>
+<pre><code></code></pre>
+
+<script type="text/javascript">
+
+// object literal
+var cat = {name: 'fluffy', colour: 'white'};
+cat.age = 3;
+cat.voice = function() {
+  display("Meeooow");
+}
+
+// constructor function
+function Cat(name, colour) {
+  this.name = name;
+  this.color = colour;
+}
+var cat = new Cat('fluffy', 'white');
+
+// Object.create
+var cat = Object.create(Object.prototype,
+  {
+    name: {
+      value: 'fluffy',
+      enumerable: true,
+      writable: true,
+      configurable: true
+    },
+    color: {
+      value: 'white',
+      enumerable: true,
+      writable: true,
+      configurable: true
+    }
+  }
+);
+
+//ES6 stylee
+class Cat {
+  // a bit like our constructor function
+  constructor(name,color) {
+    this.name = name
+    this.color = color
+  }
+
+  // and we can add methods (functions)
+  speak() {
+    display('meeoow')
+  }
+}
+var cat = new Cat('fluffy', 'white')
+cat.speak
+
+// Object Properties
+cat.colour
+// or
+cat['colour']
+
+Object.getOwnPropertyDescriptor(cat, 'name');
+// will print out
+// Object {
+//   value: Fluffy
+//   writable: true
+//   enumerable: true
+//   configurable: true
+// }
+
+Object.defineProperty(cat, 'name', {enumerable: false});
+
+// looping over properties and values of the cat object
+for (var propertyName in cat) {
+  display(propertyName + ':' + cat[propertyName])
+}
+display(Object.keys(cat))
+
+// getters and setters
+var cat = {
+  name: {first: 'fluffy', last: 'kins'},
+  colour: 'white'
+}
+
+Object.defineProperty(cat, 'fullname', {
+  get: function() {
+    return this.name.first+' '+this.name.last
+  },
+  set: function(value) {
+    var nameParts = value.split(' ')
+    this.name.first = nameParts[0]
+    this.name.last = nameParts[1]
+  }
+})
+
+display(cat.fullName);
+
+cat.fullName = "Muffin Top"
+display(cat.name.first)
+
+</script>
+
+</body>
+</html>
